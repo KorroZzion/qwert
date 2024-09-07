@@ -15,10 +15,6 @@ jobs:
         with:
           submodules: true
 
-      # Установка CMake
-      - name: Set up CMake
-        uses: lukka/get-cmake@v3
-
       # Установка Boost для Windows (если требуется)
       - name: Install Boost
         run: choco install boost-msvc-14.2
