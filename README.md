@@ -1,1 +1,1 @@
-# qwert
+# Шаблон настройки GitHub Actions
