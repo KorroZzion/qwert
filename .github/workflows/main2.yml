@@ -16,8 +16,8 @@ jobs:
           submodules: true
 
       # Установка Boost для Windows (если требуется)
-      - name: Install Boost
-        run: choco install boost-msvc-14.2
+    #  - name: Install Boost
+     #   run: choco install boost-msvc-14.2
 
       # Конфигурация проекта с использованием CMake
       - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
