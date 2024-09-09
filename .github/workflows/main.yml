@@ -79,6 +79,12 @@ jobs:
       # Сборка проекта
       - run: cmake --build . --config Release
 
+      # Копирование Boost DLL файлов рядом с тестом
+      - name: Copy Boost DLLs
+        run: |
+          dir "C:/Program Files (x86)/boost/boost_1_74_0/lib64-msvc-14.2"
+          copy "C:/Program Files (x86)/boost/boost_1_74_0/lib64-msvc-14.2/*.dll" .
+
       # Запуск тестов
       - run: ctest --output-on-failure
 
