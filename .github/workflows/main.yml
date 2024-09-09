@@ -57,10 +57,10 @@ jobs:
             C:/Program Files/CMake
           key: ${{ runner.os }}-boost-cmake-${{ hashFiles('**/CMakeLists.txt') }}
 
-      # Устанавливаем Visual Studio Build Tools
+      # Устанавливаем Visual Studio Build Tools (последняя версия)
       - name: Install Visual Studio Build Tools
         run: |
-          choco install visualstudio2022buildtools --version=17.2.1 --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional"
+          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional" --yes
 
       # Устанавливаем CMake и Boost, если они не закешированы
       - name: Install CMake and Boost
