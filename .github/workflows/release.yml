@@ -15,32 +15,41 @@ jobs:
         with:
           submodules: true
 
-      - name: Install dependencies on Ubuntu
-        run: sudo apt-get update && sudo apt-get install libboost-test-dev -y
+      # Установка зависимостей
+      - run: sudo apt-get update && sudo apt-get install libboost-test-dev -y
 
+      # Генерация проекта с использованием CMake
       - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
+
+      # Сборка проекта
       - run: cmake --build .
+
+      # Запуск тестов
       - run: cmake --build . --target test
+
+      # Упаковка проекта
       - run: cmake --build . --target package
 
-      - name: Create Release
-        id: create_release
+      # Создание релиза
+      - name: Create Release for Linux
+        id: create_release_linux
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }} for Linux
           draft: false
           prerelease: false
 
-      - name: Upload Release Asset (Linux)
-        id: upload-release-asset
+      # Загрузка артефактов релиза
+      - name: Upload Release Asset for Linux
+        id: upload-release-asset-linux
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ steps.create_release_linux.outputs.upload_url }}
           asset_path: ./helloworld-0.0.${{ github.run_number }}-Linux.deb
           asset_name: helloworld-0.0.${{ github.run_number }}-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
@@ -53,42 +62,23 @@ jobs:
         with:
           submodules: true
 
-      # Кэширование зависимостей
-      - name: Cache dependencies (Boost and CMake)
-        uses: actions/cache@v3
-        with:
-          path: |
-            C:/Program Files (x86)/boost
-            C:/Program Files/CMake
-          key: ${{ runner.os }}-boost-cmake-${{ hashFiles('**/CMakeLists.txt') }}
-
-      # Установка Visual Studio Build Tools
+      # Установка Visual Studio Build Tools и CMake
       - name: Install Visual Studio Build Tools
         run: |
           choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional" --yes
 
-      # Установка CMake и Boost
-      - name: Install CMake and Boost
-        run: |
-          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --yes --limit-output
-          choco install boost-msvc-14.2 --yes --limit-output
+      - name: Install CMake
+        run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --yes
 
-      # Проверка установки Boost
-      - name: Find Boost Installation Path
-        run: |
-          Get-ChildItem -Recurse -Filter "*.dll" -Path "C:/Program Files (x86)/boost"
+      # Установка Boost
+      - name: Install Boost
+        run: choco install boost-msvc-14.2 --yes
 
       # Генерация проекта с использованием CMake
       - run: cmake . -G "Visual Studio 17 2022" -A x64 -DPATCH_VERSION=${{ github.run_number }}
 
       # Сборка проекта
       - run: cmake --build . --config Release
-
-      # Копирование Boost DLL файлов
-      - name: Copy Boost DLLs
-        run: |
-          $boostPath = "C:/Program Files (x86)/boost/boost_1_74_0/lib64-msvc-14.2"
-          Get-ChildItem -Path $boostPath -Filter "*.dll" | Copy-Item -Destination "$(pwd)"
 
       # Запуск тестов
       - run: ctest --output-on-failure
