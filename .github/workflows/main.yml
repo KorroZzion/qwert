@@ -53,7 +53,7 @@ jobs:
         with:
           submodules: true
 
-      # Кэшируем зависимости
+      # Кэширование зависимостей
       - name: Cache dependencies (Boost and CMake)
         uses: actions/cache@v3
         with:
@@ -62,16 +62,21 @@ jobs:
             C:/Program Files/CMake
           key: ${{ runner.os }}-boost-cmake-${{ hashFiles('**/CMakeLists.txt') }}
 
-      # Устанавливаем Visual Studio Build Tools
+      # Установка Visual Studio Build Tools
       - name: Install Visual Studio Build Tools
         run: |
           choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional" --yes
 
-      # Устанавливаем CMake и Boost
+      # Установка CMake и Boost
       - name: Install CMake and Boost
         run: |
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --yes --limit-output
-          choco install boost-msvc-14.2 --yes --limit-output  # Установка нужной версии Boost
+          choco install boost-msvc-14.2 --yes --limit-output
+
+      # Проверка установки Boost
+      - name: Find Boost Installation Path
+        run: |
+          Get-ChildItem -Recurse -Filter "*.dll" -Path "C:/Program Files (x86)/boost"
 
       # Генерация проекта с использованием CMake
       - run: cmake . -G "Visual Studio 17 2022" -A x64 -DPATCH_VERSION=${{ github.run_number }}
@@ -79,11 +84,11 @@ jobs:
       # Сборка проекта
       - run: cmake --build . --config Release
 
-      # Копирование Boost DLL файлов рядом с тестом
+      # Копирование Boost DLL файлов
       - name: Copy Boost DLLs
         run: |
-          dir "C:/Program Files (x86)/boost/boost_1_74_0/lib64-msvc-14.2"
-          copy "C:/Program Files (x86)/boost/boost_1_74_0/lib64-msvc-14.2/*.dll" .
+          $boostPath = "C:/Program Files (x86)/boost/boost_1_74_0/lib64-msvc-14.2"
+          Get-ChildItem -Path $boostPath -Filter "*.dll" | Copy-Item -Destination "$(pwd)"
 
       # Запуск тестов
       - run: ctest --output-on-failure
