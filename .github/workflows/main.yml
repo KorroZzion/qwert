@@ -14,11 +14,15 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - run: sudo apt-get update && sudo apt-get install libboost-test-dev -y
+
+      - name: Install dependencies on Ubuntu
+        run: sudo apt-get update && sudo apt-get install libboost-test-dev -y
+
       - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
       - run: cmake --build .
       - run: cmake --build . --target test
       - run: cmake --build . --target package
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -29,7 +33,8 @@ jobs:
           release_name: Release ${{ github.run_number }}
           draft: false
           prerelease: false
-      - name: Upload Release Asset
+
+      - name: Upload Release Asset (Linux)
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
@@ -48,8 +53,8 @@ jobs:
         with:
           submodules: true
 
-      # Кэшируем зависимости, чтобы не скачивать их каждый раз
-      - name: Cache dependencies (CMake and Boost)
+      # Кэшируем зависимости
+      - name: Cache dependencies (Boost and CMake)
         uses: actions/cache@v3
         with:
           path: |
@@ -57,28 +62,28 @@ jobs:
             C:/Program Files/CMake
           key: ${{ runner.os }}-boost-cmake-${{ hashFiles('**/CMakeLists.txt') }}
 
-      # Устанавливаем Visual Studio Build Tools (последняя версия)
+      # Устанавливаем Visual Studio Build Tools
       - name: Install Visual Studio Build Tools
         run: |
           choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional" --yes
 
-      # Устанавливаем CMake и Boost, если они не закешированы
+      # Устанавливаем CMake и Boost
       - name: Install CMake and Boost
         run: |
           choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --yes --limit-output
-          choco install boost-msvc-14.1 --yes --limit-output
+          choco install boost-msvc-14.2 --yes --limit-output  # Установка нужной версии Boost
 
-      # Конфигурируем проект с использованием Visual Studio 2022
+      # Генерация проекта с использованием CMake
       - run: cmake . -G "Visual Studio 17 2022" -A x64 -DPATCH_VERSION=${{ github.run_number }}
-      
+
       # Сборка проекта
       - run: cmake --build . --config Release
-      
+
       # Запуск тестов
       - run: ctest --output-on-failure
 
       # Создание релиза для Windows
-      - name: Create Release
+      - name: Create Release for Windows
         id: create_release_windows
         uses: actions/create-release@v1
         env:
@@ -89,8 +94,8 @@ jobs:
           draft: false
           prerelease: false
 
-      # Загрузка артефактов релиза
-      - name: Upload Release Asset
+      # Загрузка артефактов релиза для Windows
+      - name: Upload Release Asset for Windows
         id: upload-release-asset-windows
         uses: actions/upload-release-asset@v1
         env:
