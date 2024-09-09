@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
-set(PROJECT_VESRION 0.0.${PATCH_VERSION})
+set(PROJECT_VERSION 0.0.${PATCH_VERSION})
 
-project(helloworld VERSION ${PROJECT_VESRION})
+project(helloworld VERSION ${PROJECT_VERSION})
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
@@ -17,45 +17,37 @@ set_target_properties(helloworld_cli helloworld test_version PROPERTIES
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED ON
 )
+
 target_include_directories(helloworld
     PRIVATE "${CMAKE_BINARY_DIR}"
 )
+
 set_target_properties(test_version PROPERTIES
     COMPILE_DEFINITIONS BOOST_TEST_DYN_LINK
     INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIR}
 )
 
-target_link_libraries(helloworld_cli PRIVATE
-    helloworld
-)
-target_link_libraries(test_version
-    ${Boost_LIBRARIES}
-    helloworld
-)
+target_link_libraries(helloworld_cli PRIVATE helloworld)
+target_link_libraries(test_version ${Boost_LIBRARIES} helloworld)
 
 if (MSVC)
-    target_compile_options(helloworld_cli PRIVATE
-        /W4
-    )
-    target_compile_options(helloworld PRIVATE
-        /W4
-    )
-    target_compile_options(test_version PRIVATE
-        /W4
-    )
-else ()
-    target_compile_options(helloworld_cli PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
-    target_compile_options(helloworld PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
-    target_compile_options(test_version PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
+    target_compile_options(helloworld_cli PRIVATE /W4)
+    target_compile_options(helloworld PRIVATE /W4)
+    target_compile_options(test_version PRIVATE /W4)
+else()
+    target_compile_options(helloworld_cli PRIVATE -Wall -Wextra -pedantic -Werror)
+    target_compile_options(helloworld PRIVATE -Wall -Wextra -pedantic -Werror)
+    target_compile_options(test_version PRIVATE -Wall -Wextra -pedantic -Werror)
 endif()
 
-
+# Если сборка на Windows, копируем Boost DLL после сборки тестов
+if (WIN32)
+    add_custom_command(TARGET test_version POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE_DIR:${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}>/${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}"
+        $<TARGET_FILE_DIR:test_version>
+    )
+endif()
 
 install(TARGETS helloworld_cli RUNTIME DESTINATION bin)
 
