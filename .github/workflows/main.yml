@@ -47,13 +47,37 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: Install dependencies
+
+      # Кэшируем зависимости, чтобы не скачивать их каждый раз
+      - name: Cache dependencies (CMake and Boost)
+        uses: actions/cache@v3
+        with:
+          path: |
+            C:/Program Files (x86)/boost
+            C:/Program Files/CMake
+          key: ${{ runner.os }}-boost-cmake-${{ hashFiles('**/CMakeLists.txt') }}
+
+      # Устанавливаем Visual Studio Build Tools
+      - name: Install Visual Studio Build Tools
         run: |
-          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --yes
-          choco install boost-msvc-14.1 --yes
-      - run: cmake . -G "Visual Studio 16 2019" -A x64 -DPATCH_VERSION=${{ github.run_number }}
+          choco install visualstudio2022buildtools --version=17.2.1 --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional"
+
+      # Устанавливаем CMake и Boost, если они не закешированы
+      - name: Install CMake and Boost
+        run: |
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --yes --limit-output
+          choco install boost-msvc-14.1 --yes --limit-output
+
+      # Конфигурируем проект с использованием Visual Studio 2022
+      - run: cmake . -G "Visual Studio 17 2022" -A x64 -DPATCH_VERSION=${{ github.run_number }}
+      
+      # Сборка проекта
       - run: cmake --build . --config Release
+      
+      # Запуск тестов
       - run: ctest --output-on-failure
+
+      # Создание релиза для Windows
       - name: Create Release
         id: create_release_windows
         uses: actions/create-release@v1
@@ -64,6 +88,8 @@ jobs:
           release_name: Release ${{ github.run_number }} for Windows
           draft: false
           prerelease: false
+
+      # Загрузка артефактов релиза
       - name: Upload Release Asset
         id: upload-release-asset-windows
         uses: actions/upload-release-asset@v1
