@@ -44,7 +44,7 @@ endif()
 if (WIN32)
     add_custom_command(TARGET test_version POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "$<TARGET_FILE_DIR:${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}>/${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}"
+        "${Boost_LIBRARY_DIRS}/boost_unit_test_framework-vc142-mt-x64-1_74.dll"
         $<TARGET_FILE_DIR:test_version>
     )
 endif()
