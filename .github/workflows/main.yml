@@ -61,6 +61,13 @@ jobs:
         with:
           submodules: true
 
+
+       # Установка Boost
+      - name: Install Boost
+        run: choco install boost-msvc-14.2 --version=1.74.0 --install-arguments="'INSTALLDIR=C:\\local\\boost_1_74_0'"
+        
+      - name: Check Boost Installation
+        run: dir "C:/local/boost_1_74_0"
       # Установка Visual Studio Build Tools и CMake
       - name: Install Visual Studio Build Tools
         run: |
@@ -68,10 +75,6 @@ jobs:
 
       - name: Install CMake
         run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' --yes
-
-      # Установка Boost
-      - name: Install Boost
-        run: choco install boost-msvc-14.2 --yes
 
       # Генерация проекта с использованием CMake
       - run: cmake . -G "Visual Studio 17 2022" -A x64 -DPATCH_VERSION=${{ github.run_number }}
