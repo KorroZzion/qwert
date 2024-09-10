@@ -85,8 +85,8 @@ jobs:
       # Копирование Boost DLL рядом с тестами
       - name: Copy Boost DLLs
         run: |
-          dir "C:/Program Files/boost/boost_1_74_0/lib64-msvc-14.2"
-          copy "C:/Program Files/boost/boost_1_74_0/lib64-msvc-14.2/*.dll" "./Release"
+          dir "C:/local/boost_1_74_0/lib64-msvc-14.2"
+          copy "C:/local/boost_1_74_0/lib64-msvc-14.2/*.dll" "./Release"
 
       # Запуск тестов
       - run: ctest --output-on-failure --build-config Release
