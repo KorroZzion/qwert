@@ -66,13 +66,13 @@ jobs:
         with:
           submodules: true
 
-
-       # Установка Boost
+      # Установка Boost
       - name: Install Boost
         run: choco install boost-msvc-14.2 --version=1.74.0 --install-arguments="'INSTALLDIR=C:\\local\\boost_1_74_0'"
         
       - name: Check Boost Installation
         run: dir "C:/local/boost_1_74_0"
+
       # Установка Visual Studio Build Tools и CMake
       - name: Install Visual Studio Build Tools
         run: |
@@ -96,6 +96,9 @@ jobs:
       # Запуск тестов
       - run: ctest --output-on-failure --build-config Release
 
+      # Создание архива с билдом
+      - name: Zip Windows Build
+        run: powershell Compress-Archive -Path Release\helloworld_cli.exe -DestinationPath Release\helloworld-0.0.${{ github.run_number }}-win64.zip
 
       # Создание релиза для Windows
       - name: Create Release for Windows
